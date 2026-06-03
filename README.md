@@ -322,7 +322,36 @@ cd ~
 EOF
 ```
 
-Terakhir saya membuat 
+Terakhir saya membuat init script dan mengemas rootfs menjadi .gz  
+
+```bash
+# 8. Init Script
+cat << 'EOF' > "$ROOTFS/init"
+#!/bin/sh
+mount -t proc none /proc
+mount -t sysfs none /sys
+mount -t devtmpfs none /dev
+
+# Setup network manual (QEMU user-mode)
+ifconfig eth0 10.0.2.15 netmask 255.255.255.0
+route add default gw 10.0.2.2
+echo "nameserver 8.8.8.8" > /etc/resolv.conf
+
+clear
+exec /sbin/getty -L console 0 vt100
+EOF
+chmod +x "$ROOTFS/init"
+
+# 9. Mengemas rootfs menjadi .gz
+ABSOLUTE_OUTPUT="$(pwd)/${OUTPUT_DIR}"
+echo "[*] Mengemas rootfs menjadi ${OUTPUT_DIR}/multi.gz..."
+cd "$ROOTFS"
+find . -print0 | cpio --null -ov -H newc | gzip -9 > "${ABSOLUTE_OUTPUT}/multi.gz"
+cd ..
+echo "[+] Selesai! Filesystem Multi-User siap di ${OUTPUT_DIR}/multi.gz"
+```
+
+4. 
 
 
 
