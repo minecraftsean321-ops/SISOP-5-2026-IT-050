@@ -351,8 +351,136 @@ cd ..
 echo "[+] Selesai! Filesystem Multi-User siap di ${OUTPUT_DIR}/multi.gz"
 ```
 
-4. 
+4. Keempat kita diminta untuk membuat bootable yang dapat mengeload kedua filesystem sebelumnya dengan melengkapi script iso.sh dan outpunya akan masuk ke osboot/farewell.iso.
 
+Untuk langkah pertama kita perlu menyiapkan folder sementara bernama iso_tmp sebagai tempat untuk merakit komponen OS sebelum diubah menjadi file ISO, setelah itu kita juga perlu untuk menyalin command Linux dari BusyBox.
+
+```bash 
+rm -rf "$ISO_DIR"
+mkdir -p "$ISO_DIR"/boot/grub
+
+cp "${OUTPUT_DIR}/bzImage" "$ISO_DIR/boot/"
+cp "${OUTPUT_DIR}/single.gz" "$ISO_DIR/boot/"
+cp "${OUTPUT_DIR}/multi.gz" "$ISO_DIR/boot/"
+```
+
+Kemudian kita perlu membuat menu booting yang akan ditampilkan saat komputer pertama kali dinyalakan. 
+
+```bash
+cat << EOF > "$ISO_DIR/boot/grub/grub.cfg"
+set default=0
+set timeout=10
+
+menuentry "Linux Minimalist - Single User Mode" {
+    linux /boot/bzImage quiet root=/dev/ram0 rdinit=/init
+    initrd /boot/single.gz
+}
+
+menuentry "Linux Minimalist - Multi User Mode" {
+    linux /boot/bzImage quiet root=/dev/ram0 rdinit=/init
+    initrd /boot/multi.gz
+}
+EO
+```  
+
+Terakhir kita perlu mengubah file iso sementara tadi menjadi file master ISO yang siap pakai.
+
+```bash
+grub-mkrescue -o "${OUTPUT_DIR}/farewell.iso" "$ISO_DIR"
+rm -rf "$ISO_DIR"
+echo "[+] Selesai! Bootable ISO sukses dibuat."
+```
+
+5. Kelima kita diminta untuk ngeboot OS yang telah kita bikin tadi dengan melengkapi script qemu.sh. Dengan specs ./qemu.sh --single untuk ngeboot filesystem yang singe-user lalu ./qemu.sh --multi untuk ngeboot filesystem yang multi-user dan ./qemu.sh --all untuk mendapatkan pilihan nanti mau ngeboot yang single atau multi.
+
+Jadi inti dari kode qemu.sh dibawah ini adalah kita menggunakan syntax case untuk mengambil kondisi string setelah perintah ./qemu.sh itu apakah single, multi atau all. Jika user memilih --single, qemu akan memasukkan sistem single.gz, begitu juga jika user memilih --multi maka qemu akan memasukkan sistem multi.gz, dan terakhir jika user memilih --all maka qemu akan menggunakan farewell.iso.
+
+```bash
+#!/bin/bash
+
+OUTPUT_DIR="osboot"
+
+case "$1" in
+    --single)
+        echo "[*] Booting Single-User Filesystem langsung..."
+        qemu-system-x86_64 \
+            -kernel "${OUTPUT_DIR}/bzImage" \
+            -initrd "${OUTPUT_DIR}/single.gz" \
+            -append "quiet root=/dev/ram0 rdinit=/init console=tty1" \
+            -netdev user,id=net0 \
+            -device virtio-net-pci,netdev=net0
+        ;;
+        --multi)
+        echo "[*] Booting Multi-User Filesystem langsung..."
+        qemu-system-x86_64 \
+            -kernel "${OUTPUT_DIR}/bzImage" \
+            -initrd "${OUTPUT_DIR}/multi.gz" \
+            -append "quiet root=/dev/ram0 rdinit=/init console=tty1" \
+            -netdev user,id=net0 \
+            -device virtio-net-pci,netdev=net0
+        ;;
+    --all)
+        echo "[*] Booting dari Menu Grub ISO Image..."
+        qemu-system-x86_64 \
+            -cdrom "${OUTPUT_DIR}/farewell.iso" \
+            -netdev user,id=net0 \
+            -device virtio-net-pci,netdev=net0
+        ;;
+    *)
+     echo "Cara Penggunaan:"
+        echo "  $0 --single     -> Booting single-user"
+        echo "  $0 --multi      -> Booting multi-user"
+        echo "  $0 --all        -> Booting ISO"
+        exit 1
+        ;;
+esac
+```
+
+6. Keenam untuk keperluan arsip maka semua file tadi perlu dibackup dengan melengkapi script backup.sh dimana script ini bakal nge zip semua file bzimage, single.gz, multi.gz dan farewell.iso yang hasilnya akan disimpan di osboot/.
+
+Langkah pertama kita perlu membuat nama file yang unik dengan menggunakan tanggal dan waktu saat ini sehingga saat script dijalankan tidak ada file yang saling menimpa.
+
+```bash
+TIMESTAMP=$(date +"%d%m%Y-%H%M%S")
+BACKUP_NAME="farewell_backup_${TIMESTAMP}.zip"
+BACKUP_PATH="${OUTPUT_DIR}/${BACKUP_NAME}"
+```
+
+Kemudian kita perlu memeriksa kelengkapan file penting yang akan di zip.
+
+```bash
+FILES_TO_BACKUP=(
+    "${OUTPUT_DIR}/bzImage"
+    "${OUTPUT_DIR}/single.gz"
+    "${OUTPUT_DIR}/multi.gz"
+    "${OUTPUT_DIR}/farewell.iso"
+)
+
+for f in "${FILES_TO_BACKUP[@]}"; do
+    if [ ! -f "$f" ]; then
+        echo "[-] Error: File $f tidak ditemukan!..."
+        exit 1
+    fi
+done
+```
+
+Jika semua file dipastikan ada kita mulai membungkus keempat file tersebut menjadi satu file .zip di dalam folder osboot.
+
+```bash
+zip "$BACKUP_PATH" "${FILES_TO_BACKUP[@]}" || { echo "[-] Proses zip gagal!"; exit 1; }
+```
+
+Setelah semua file asli dipastikan aman tersimpan di dalam file .zip, script akan menghapus file-file mentah yang berserakan di folder osboot.
+
+```bash 
+echo "[*] Menghapus file asli..."
+for f in "${FILES_TO_BACKUP[@]}"; do
+    rm -f "$f"
+    echo "    [-] Dihapus: $f"
+done
+```
+
+7. 
 
 
 
