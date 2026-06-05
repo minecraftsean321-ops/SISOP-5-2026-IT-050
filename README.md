@@ -518,7 +518,7 @@ ifconfig eth0 10.0.2.15 netmask 255.255.255.0 up
 route add default gw 10.0.2.1
 echo "nameserver 8.8.8.8" > /etc/resolv.conf
 ```
-Untuk pengujiannya kita bia menggunakan syntax dibawah ini
+Untuk pengujiannya kita bia menggunakan syntax dibawah ini di dalam qemu.
 
 ```console 
 
