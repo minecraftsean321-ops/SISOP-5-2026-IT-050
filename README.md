@@ -480,7 +480,48 @@ for f in "${FILES_TO_BACKUP[@]}"; do
 done
 ```
 
-7. 
+7. Untuk langkah ketuju kita diminta mengecek apakah OS kita sudah bisa akses internet. Nah untuk OS kita kali ini itu menggunakan TAP network interface untuk koneksi internetnya, dan itu perlu untuk set up terlebih dahulu, jadi sistem host itu perlu dikonfigurai dengan membuat virtual network interface tap0 yang berperan sebagai gateway antara guest OS dan jaringan host.
+
+Ini merupakan bagian kode di file qemu.sh untuk setup networknya.
+
+```bash
+setup_network() {
+    # Hapus tap0 lama jika ada
+    sudo ip link delete tap0 2>/dev/null
+
+    # Buat tap0 baru owned by root
+    sudo tunctl -t tap0
+    sudo ip addr add 10.0.2.1/24 dev tap0
+    sudo ip link set tap0 up
+    sudo sysctl -w net.ipv4.ip_forward=1 > /dev/null
+
+    # Deteksi interface internet host
+    HOST_IF=$(ip route | grep default | awk '{print $5}' | head -1)
+
+    # Setup NAT
+    sudo iptables -t nat -A POSTROUTING -o "$HOST_IF" -j MASQUERADE
+    sudo iptables -A FORWARD -i tap0 -o "$HOST_IF" -j ACCEPT
+    sudo iptables -A FORWARD -i "$HOST_IF" -o tap0 -m state --state RELATED,ESTABLISHED -j ACCEPT
+}
+```
+Lalu ini bagian untuk attach tap0 ke qemunya.
+
+```bash
+-netdev tap,id=net0,ifname=tap0,script=no,downscript=no \
+-device virtio-net-pci,netdev=net0
+```
+
+Terakhir ini merupakan bagian untuk ini script di dalam rootfs nya.
+
+```bash
+ifconfig eth0 10.0.2.15 netmask 255.255.255.0 up
+route add default gw 10.0.2.1
+echo "nameserver 8.8.8.8" > /etc/resolv.conf
+```
+
+Output:
+
+
 
 
 
