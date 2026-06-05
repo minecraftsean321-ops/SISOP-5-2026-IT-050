@@ -521,7 +521,7 @@ echo "nameserver 8.8.8.8" > /etc/resolv.conf
 
 Output:
 
-
+![Isi file gsx](<Assets/Soal_2/Isifilegsx.png>)
 
 
 
