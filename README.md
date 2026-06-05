@@ -528,7 +528,9 @@ Untuk pengujiannya kita bia menggunakan syntax dibawah ini di dalam qemu.
 ```
 Output:
 
-![Isi file gsx](<Assets/Soal_2/Isifilegsx.png>)
+![akses internet single](<Assets/ping_single>)
+
+![akses internet multi](<Assets/ping_multi>)
 
 
 
