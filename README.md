@@ -528,9 +528,9 @@ Untuk pengujiannya kita bia menggunakan syntax dibawah ini di dalam qemu.
 ```
 Output:
 
-![akses internet single](<Assets/ping_single>)
+![akses internet single](<Assets/ping_single.png>)
 
-![akses internet multi](<Assets/ping_multi>)
+![akses internet multi](<Assets/ping_multi.png>)
 
 
 
