@@ -545,4 +545,8 @@ Output:
 
 ![akses internet single](<Assets/fuse_single.png>)
 
+## Kendala  
+1. Sempat error terus waktu akses ke internetnya
+2. Build kernel yang memerlukan waktu lama  
+
 
