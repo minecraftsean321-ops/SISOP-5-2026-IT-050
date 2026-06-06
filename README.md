@@ -532,5 +532,14 @@ Output:
 
 ![akses internet multi](<Assets/ping_multi.png>)
 
+8. Step ke delapan kita diminta untuk menginstall package manager yang akan diberi nama party, party ini merupakan binary apk-tools dari Alpine Linux yang di-rename menjadi party sesuai ketentuan soal. Binary Binary ini di-bundle langsung ke dalam rootfs saat proses build sehingga langsung tersedia saat OS booting. Untuk memverifikasi, dapat dijalankan perintah "party --version" yang menampilkan versi apk-tools, 
+"party update" untuk mengambil daftar package terbaru dari repository Alpine Linux, dan "party add --allow-untrusted <nama-package>" untuk menginstall package.
+
+Output:
+
+![akses internet single](<Assets/ping_single.png>)
+
+9. Terkahir kita perlu untuk mengaktifkan fuse di dalam OS kita dengan menginstallnya menggunakan perintah party add --allow-untrusted fuse3. Keberhasilan instalasi dapat diverifikasi dengan mengecek ketersediaan device /dev/fuse, menjalankan fusermount3 --version, serta memastikan kernel mendukung FUSE melalui cat /proc/filesystems | grep fuse yang menampilkan fuseblk, fuse, dan fusectl.
+
 
 
