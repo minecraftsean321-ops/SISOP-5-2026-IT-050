@@ -537,9 +537,12 @@ Output:
 
 Output:
 
-![akses internet single](<Assets/ping_single.png>)
+![akses internet single](<Assets/party_single.png>)
 
 9. Terkahir kita perlu untuk mengaktifkan fuse di dalam OS kita dengan menginstallnya menggunakan perintah party add --allow-untrusted fuse3. Keberhasilan instalasi dapat diverifikasi dengan mengecek ketersediaan device /dev/fuse, menjalankan fusermount3 --version, serta memastikan kernel mendukung FUSE melalui cat /proc/filesystems | grep fuse yang menampilkan fuseblk, fuse, dan fusectl.
 
+Output:
+
+![akses internet single](<Assets/fuse_single.png>)
 
 
